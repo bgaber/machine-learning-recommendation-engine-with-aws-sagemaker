@@ -1,7 +1,7 @@
-# machine-learning-recommendation-engine-with-aws-sagemaker
+# Machine Learning Recommendation Engine with AWS SageMaker
 Build a Netflix Style Recommendation Engine with AWS SageMaker
 
-I am currently working on this project and artifacts should appear here by mid-November 2020.  Typically in any Machine Learning project the Data Preparation phase takes up about 70% of the project time.
+I am currently working on this project and artifacts should appear here by mid-November 2020.  Typically, in any Machine Learning project the Data Preparation phase takes up about 70% of the project time.
 
 Project Description
 -------------------

@@ -25,7 +25,7 @@ The next step is to put the data in a format a machine can learn from. Transform
 
 4. Train
 
-Now that the data is prepared, the training process will begin using the selected machine learning algorithm. The algorithm should cluster or group the IMDb data in order to make recommendations. The initial plan is to use the k-means clustering algorithm. Amazon SageMaker provides a k-means clustering algorithm or I may explore scikit-learn’s version.
+Now that the data is prepared, the training process will begin using the selected machine learning algorithm. The algorithm should cluster or group the IMDb data in order to make recommendations. The initial plan is to use the k-means clustering algorithm.  Amazon SageMaker provides a k-means clustering algorithm or I may explore scikit-learn’s version.
 
 5. Recommend
 

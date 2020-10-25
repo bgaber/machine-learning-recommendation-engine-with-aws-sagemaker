@@ -1,4 +1,5 @@
 # Machine Learning Recommendation Engine with AWS SageMaker
+![Alt text](CloudGuruChallenge.jpg?raw=true "Machine Learning Recommendation Engine with AWS SageMaker")
 Goal
 ----
 The goal of this project is to build a Netflix style recommendation engine with AWS SageMaker and other ML tools.

@@ -1,0 +1,4 @@
+*.v*.php
+mysql_cmds.txt
+pdo_connect.php
+phpinfo.php

@@ -60,7 +60,7 @@ p {
 <center>
 	<p>
 		<font size=+1 color=navy>
-			Brian's AWS SageMaker Machine Learning K-Means Movie Recommendation Project<br>
+			Brian's Amazing, Mystifying, Captivating AWS SageMaker Machine Learning K-Means Movie Recommendation System<br>
 		</font>
 	</p>
 
@@ -82,14 +82,18 @@ echo "</tr>";
 echo "</table>";
 echo "<input type='submit' value='Submit'>";
 echo "</form>";
-
-if (isset($_POST['mtitle']) && isset($_POST['numOfRecs'])) {
+    
+if (isset($_POST['numOfRecs']) && ( filter_var($_POST['numOfRecs'], FILTER_VALIDATE_INT) === false )) {
+  echo "The value entered for the number of recommendations must be an integer.";
+}
+elseif (isset($_POST['mtitle']) && isset($_POST['numOfRecs'])) {
     echo "<p><font color=navy><b>Here are your recommended movies based upon you like $_POST[mtitle]</b></font></p>";
 
     try {
-        $query1 = "SELECT labels FROM movie_categories WHERE title=?";
+        $query1 = "SELECT labels FROM movie_categories WHERE title LIKE ?";
         $sth1 = $dbh->prepare("$query1");
-        $sth1->execute(array("$_POST[mtitle]"));
+        $sth1->bindValue(1, "%$_POST[mtitle]%", PDO::PARAM_STR);
+        $sth1->execute();
         $row = $sth1->fetch(PDO::FETCH_ASSOC);
         $category = $row['labels'];
     } catch (PDOException $e) {
@@ -98,18 +102,24 @@ if (isset($_POST['mtitle']) && isset($_POST['numOfRecs'])) {
         exit();
     }
     
-    try {
-        $query2 = "SELECT title FROM movie_categories WHERE labels=$category ORDER BY RAND() LIMIT $_POST[numOfRecs]";
-        #echo "$query2<br>";
-        $sth2 = $dbh->query("$query2");
+    # Need to add code to see if previous query return a valid value for category, i.e. does the movie title exist in the database
+    if ($row) {  
+        try {
+            $query2 = "SELECT title FROM movie_categories WHERE labels=$category ORDER BY RAND() LIMIT $_POST[numOfRecs]";
+            #echo "$query2<br>";
+            $sth2 = $dbh->query("$query2");
 
-        while($row = $sth2->fetch(PDO::FETCH_ASSOC)) {
-           echo "$row[title]<br>";
+            while($row = $sth2->fetch(PDO::FETCH_ASSOC)) {
+               echo "$row[title]<br>";
+            }
+        } catch (PDOException $e) {
+            //If mysql query was unsuccessful, output error
+            echo "$query2 exception: " . $e->getMessage() . "!<br>\n";
+            exit();
         }
-    } catch (PDOException $e) {
-        //If mysql query was unsuccessful, output error
-        echo "$query2 exception: " . $e->getMessage() . "!<br>\n";
-        exit();
+    }
+    else {
+        echo "<p><font color=navy><b>The movie you entered, $_POST[mtitle], was not found in the movie recommendation database.  Please try again.</b></font></p>";
     }
 }
 ?>

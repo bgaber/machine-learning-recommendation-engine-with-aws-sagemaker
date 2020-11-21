@@ -76,12 +76,57 @@ if (isset($_POST['numOfRecs']) && ( filter_var($_POST['numOfRecs'], FILTER_VALID
   echo "<p><font color=red><b>The value entered for the number of recommendations must be an integer.</b></font></p>\n";
 }
 elseif (isset($_POST['mtitle']) && isset($_POST['numOfRecs'])) {
-    echo "<p><font color=navy><b>Here are your recommended movies based upon you like $_POST[mtitle]</b></font></p>\n";
-
     try {
-        $query1 = "SELECT labels FROM movie_categories WHERE title LIKE ?";
-        $sth1 = $dbh->prepare("$query1");
-        $sth1->bindValue(1, "%$_POST[mtitle]%", PDO::PARAM_STR);
+        if (isset($_POST['exact']) && $_POST['exact'] == 'true') {
+           $query = "SELECT count(*) AS numRows FROM movie_categories WHERE title = ?";
+           $sth = $dbh->prepare("$query");
+           $sth->bindValue(1, "$_POST[mtitle]", PDO::PARAM_STR);
+        } else {
+           $query = "SELECT count(*) AS numRows FROM movie_categories WHERE title LIKE ?";
+           $sth = $dbh->prepare("$query");
+           $sth->bindValue(1, "%$_POST[mtitle]%", PDO::PARAM_STR);
+        }
+        $sth->execute();
+        $row = $sth->fetch(PDO::FETCH_ASSOC);
+        $numRows = $row['numRows'];
+    } catch (PDOException $e) {
+        //If mysql query was unsuccessful, output error
+        echo "$query exception: " . $e->getMessage() . "!<br>\n";
+        exit();
+    }
+    
+    if ($numRows == 0) {
+        zeroMovies($_POST['mtitle']);
+    }
+    elseif ($numRows == 1) {
+        oneMovie($_POST['mtitle']);
+    }
+    elseif ($numRows > 1) {
+        manyMovies($_POST['mtitle']);
+    }
+}
+    
+function zeroMovies($movieTitle)
+{
+    echo "<p><font color=navy><b>The movie you entered, $movieTitle, was not found in the movie recommendation database.  Please try again.</b></font></p>\n";
+}
+
+function oneMovie($movieTitle)
+{
+    global $dbh;
+        
+    echo "<p><font color=navy><b>Here are your recommended movies based upon you like $movieTitle</b></font></p>\n";
+    
+    try {
+        if (isset($_POST['exact']) && $_POST['exact'] == 'true') {
+           $query1 = "SELECT labels FROM movie_categories WHERE title = ?";
+           $sth1 = $dbh->prepare("$query1");
+           $sth1->bindValue(1, "$movieTitle", PDO::PARAM_STR);
+        } else {
+           $query1 = "SELECT labels FROM movie_categories WHERE title LIKE ?";
+           $sth1 = $dbh->prepare("$query1");
+           $sth1->bindValue(1, "%$movieTitle%", PDO::PARAM_STR);
+        }
         $sth1->execute();
         $row = $sth1->fetch(PDO::FETCH_ASSOC);
         $category = $row['labels'];
@@ -92,7 +137,7 @@ elseif (isset($_POST['mtitle']) && isset($_POST['numOfRecs'])) {
     }
     
     # Need to add code to see if previous query return a valid value for category, i.e. does the movie title exist in the database
-    if ($row) {  
+    if ($row) {
         try {
             # this code works, but is open to sql injection
             #$query2 = "SELECT title FROM movie_categories WHERE labels=$category ORDER BY RAND() LIMIT $_POST[numOfRecs]";
@@ -115,8 +160,38 @@ elseif (isset($_POST['mtitle']) && isset($_POST['numOfRecs'])) {
             exit();
         }
     }
-    else {
-        echo "<p><font color=navy><b>The movie you entered, $_POST[mtitle], was not found in the movie recommendation database.  Please try again.</b></font></p>\n";
+}
+
+function manyMovies($movieTitle)
+{
+    global $dbh;
+    
+    echo "<p><font color=navy><b>The movie you entered, $movieTitle, has several entries in the recommendation database.  Please select the specific movie you like.</b></font></p>\n";
+    
+    try {
+        $query = "SELECT title FROM movie_categories WHERE title LIKE ?";
+        $sth = $dbh->prepare("$query");
+        $sth->bindValue(1, "%$movieTitle%", PDO::PARAM_STR);
+        $sth->execute();
+        $formCnt = 0;
+        while($row = $sth->fetch(PDO::FETCH_ASSOC)) {
+           $formName = "titleForm" . $formCnt;
+           echo "<form method='post' name='$formName'>\n";
+           echo "<p>\n";
+           echo "   <input type='hidden' id='mtitle' name='mtitle' value='$row[title]'>\n";
+           echo "   <input type='hidden' id='numOfRecs' name='numOfRecs' value='$_POST[numOfRecs]'>\n";
+           echo "   <input type='hidden' id='exact' name='exact' value='true'>\n";
+           echo "   <script type='text/javascript'>\n";
+           echo "      document.write('<a href=\"\" onclick=\"javascript:document.$formName.submit();return false;\">$row[title]<\/a>');\n";
+           echo "   </script>\n";
+           echo "</p>\n";
+           echo "</form>\n";
+           $formCnt++;
+        }
+    } catch (PDOException $e) {
+        //If mysql query was unsuccessful, output error
+        echo "$query1 exception: " . $e->getMessage() . "!<br>\n";
+        exit();
     }
 }
 ?>

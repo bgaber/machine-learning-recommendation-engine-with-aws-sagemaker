@@ -77,10 +77,10 @@ if (isset($_POST['numOfRecs']) && ( filter_var($_POST['numOfRecs'], FILTER_VALID
 }
 elseif (isset($_POST['mtitle']) && isset($_POST['numOfRecs'])) {
     try {
-        if (isset($_POST['exact']) && $_POST['exact'] == 'true') {
-           $query = "SELECT count(*) AS numRows FROM movie_categories WHERE title = ?";
+        if (isset($_POST['title_id']) && isset($_POST['exact']) && $_POST['exact'] == 'true') {
+           $query = "SELECT count(*) AS numRows FROM movie_categories WHERE title_id = ?";
            $sth = $dbh->prepare("$query");
-           $sth->bindValue(1, "$_POST[mtitle]", PDO::PARAM_STR);
+           $sth->bindValue(1, "$_POST[title_id]");
         } else {
            $query = "SELECT count(*) AS numRows FROM movie_categories WHERE title LIKE ?";
            $sth = $dbh->prepare("$query");
@@ -118,10 +118,10 @@ function oneMovie($movieTitle)
     echo "<p><font color=navy><b>Here are your recommended movies based upon you like $movieTitle</b></font></p>\n";
     
     try {
-        if (isset($_POST['exact']) && $_POST['exact'] == 'true') {
-           $query1 = "SELECT labels FROM movie_categories WHERE title = ?";
+        if (isset($_POST['title_id']) && isset($_POST['exact']) && $_POST['exact'] == 'true') {
+           $query1 = "SELECT labels FROM movie_categories WHERE title_id = ?";
            $sth1 = $dbh->prepare("$query1");
-           $sth1->bindValue(1, "$movieTitle", PDO::PARAM_STR);
+           $sth1->bindValue(1, "$_POST[title_id]");
         } else {
            $query1 = "SELECT labels FROM movie_categories WHERE title LIKE ?";
            $sth1 = $dbh->prepare("$query1");
@@ -169,7 +169,7 @@ function manyMovies($movieTitle)
     echo "<p><font color=navy><b>The movie you entered, $movieTitle, has several entries in the recommendation database.  Please select the specific movie you like.</b></font></p>\n";
     
     try {
-        $query = "SELECT title FROM movie_categories WHERE title LIKE ?";
+        $query = "SELECT title_id, title FROM movie_categories WHERE title LIKE ?";
         $sth = $dbh->prepare("$query");
         $sth->bindValue(1, "%$movieTitle%", PDO::PARAM_STR);
         $sth->execute();
@@ -178,6 +178,7 @@ function manyMovies($movieTitle)
            $formName = "titleForm" . $formCnt;
            echo "<form method='post' name='$formName'>\n";
            echo "<p>\n";
+           echo "   <input type='hidden' id='title_id' name='title_id' value='$row[title_id]'>\n";
            echo "   <input type='hidden' id='mtitle' name='mtitle' value='$row[title]'>\n";
            echo "   <input type='hidden' id='numOfRecs' name='numOfRecs' value='$_POST[numOfRecs]'>\n";
            echo "   <input type='hidden' id='exact' name='exact' value='true'>\n";
